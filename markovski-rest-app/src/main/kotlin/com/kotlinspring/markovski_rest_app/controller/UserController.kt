@@ -76,4 +76,35 @@ class UserController(private val userRepository: UserRepository) {
         }
     }
 
+    // UPDATE
+    @PutMapping("/{id}")
+    fun updateUser(@PathVariable(value = "id") id: Long, @RequestBody newUserData: User): ResponseEntity<Any> {
+        return try {
+            val existingUser: User = userRepository.findById(id).orElseThrow{RuntimeException("User with this id doesn't exists.")}
+
+            val updatedUser = existingUser.copy(
+                firstName = newUserData.firstName,
+                lastName = newUserData.lastName,
+                dateOfBirth = newUserData.dateOfBirth,
+                phoneNumber = newUserData.phoneNumber,
+                email = newUserData.email
+            )
+
+            val savedUser = userRepository.save(updatedUser)
+            logger.info("Updating user is successfully!")
+            ResponseEntity.ok(savedUser)
+        } catch (e: Exception) {
+            logger.error("Updating user failed!")
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating user!")
+        }
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    fun deleteUser(@PathVariable(value = "id") id: Long): ResponseEntity<Any> {
+        val user: User = userRepository.findById(id).orElseThrow({RuntimeException("User with this id doesn't exists.")})
+        userRepository.delete(user)
+        return ResponseEntity.ok(user)
+    }
+
 }
